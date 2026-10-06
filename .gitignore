@@ -1,6 +1,152 @@
-# dataset and trained models stay on your PC (too large for GitHub)
+# ============================================================
+# LungLens - Git Ignore
+# ============================================================
+
+# ------------------------------------------------------------
+# DATASET
+# ------------------------------------------------------------
+# Training dataset is large and must remain local.
 Mendaly/
 backend/Mendaly/
-backend/artifacts/*.joblib
-backend/artifacts/features.npz
+
+# ------------------------------------------------------------
+# PYTHON VIRTUAL ENVIRONMENTS
+# ------------------------------------------------------------
+# Never commit local Python environments.
+.venv/
+venv/
+env/
+ENV/
+
+backend/.venv/
+backend/venv/
+backend/env/
+
+# ------------------------------------------------------------
+# PYTHON CACHE / COMPILED FILES
+# ------------------------------------------------------------
 __pycache__/
+**/__pycache__/
+
+*.py[cod]
+*$py.class
+*.pyo
+*.pyd
+
+# ------------------------------------------------------------
+# TRAINED MODEL / ML ARTIFACTS
+# ------------------------------------------------------------
+# Trained models are kept out of GitHub.
+# They will be uploaded separately to Hugging Face.
+backend/artifacts/*.joblib
+backend/artifacts/*.pkl
+backend/artifacts/*.pickle
+backend/artifacts/*.h5
+backend/artifacts/*.keras
+backend/artifacts/*.pt
+backend/artifacts/*.pth
+
+# Feature cache / extracted feature data
+backend/artifacts/features.npz
+
+# Model evaluation output generated locally
+backend/artifacts/metrics.json
+
+# Hugging Face copy of trained artifacts
+hf-space/artifacts/*.joblib
+hf-space/artifacts/*.pkl
+hf-space/artifacts/*.pickle
+hf-space/artifacts/*.h5
+hf-space/artifacts/*.keras
+hf-space/artifacts/*.pt
+hf-space/artifacts/*.pth
+hf-space/artifacts/features.npz
+hf-space/artifacts/metrics.json
+
+# If artifacts are ever kept under hf-space/backend/
+hf-space/backend/artifacts/*.joblib
+hf-space/backend/artifacts/*.pkl
+hf-space/backend/artifacts/*.pickle
+hf-space/backend/artifacts/*.h5
+hf-space/backend/artifacts/*.keras
+hf-space/backend/artifacts/*.pt
+hf-space/backend/artifacts/*.pth
+hf-space/backend/artifacts/features.npz
+hf-space/backend/artifacts/metrics.json
+
+# ------------------------------------------------------------
+# JUPYTER / NOTEBOOK GENERATED FILES
+# ------------------------------------------------------------
+.ipynb_checkpoints/
+
+# ------------------------------------------------------------
+# LOGS
+# ------------------------------------------------------------
+*.log
+logs/
+*.out
+
+# ------------------------------------------------------------
+# LOCAL TEMPORARY FILES
+# ------------------------------------------------------------
+*.tmp
+*.temp
+*.bak
+*.swp
+*.swo
+
+# ------------------------------------------------------------
+# OS FILES
+# ------------------------------------------------------------
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# ------------------------------------------------------------
+# IDE / EDITOR FILES
+# ------------------------------------------------------------
+.vscode/*
+!.vscode/settings.json
+!.vscode/extensions.json
+
+.idea/
+*.iml
+
+# ------------------------------------------------------------
+# PYTHON TEST / COVERAGE OUTPUT
+# ------------------------------------------------------------
+.pytest_cache/
+.coverage
+.coverage.*
+htmlcov/
+.tox/
+.nox/
+
+# ------------------------------------------------------------
+# BUILD / DISTRIBUTION OUTPUT
+# ------------------------------------------------------------
+build/
+dist/
+*.egg-info/
+
+# ------------------------------------------------------------
+# LOCAL ENVIRONMENT / SECRET FILES
+# ------------------------------------------------------------
+# Do NOT commit environment variable files.
+.env
+.env.*
+!.env.example
+
+# ------------------------------------------------------------
+# FRONTEND LOCAL DEVELOPMENT
+# ------------------------------------------------------------
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+pnpm-debug.log*
+
+# ------------------------------------------------------------
+# FRONTEND BUILD OUTPUT
+# ------------------------------------------------------------
+dist/
+build/

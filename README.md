@@ -1,46 +1,60 @@
-# COVID-19 & Pneumonia CT Scan Classification
+# LungLens — COVID-19 & Pneumonia CT Scan Classification
 
-CT scan image classification of COVID-19, Pneumonia, and Normal cases using **DenseNet121** feature extraction with SVM, Random Forest, and Logistic Regression classifiers. Includes a website (LungLens) to classify an uploaded scan.
+Research and educational project that extracts image features with DenseNet121 and compares SVM, Random Forest, and Logistic Regression classifiers.
 
-![Python](https://img.shields.io/badge/Python-3.x-blue) ![TensorFlow](https://img.shields.io/badge/TensorFlow-2.x-orange) ![Colab](https://img.shields.io/badge/Google-Colab-yellow)
+## Deployment layout
 
-## Pipeline
-`CT Scans` → `Preprocessing` → `DenseNet121` → `Feature Vectors` → `ML Classifiers` → `Evaluation`
+- **Vercel:** static website in `frontend/`
+- **Hugging Face Spaces:** Gradio API bundle in `hf-space/`
 
-## Classes
-| Class | Folder |
-|-------|--------|
-| COVID-19 | COVID2_CT |
-| Pneumonia | pneumonia_CT |
-| Normal | Normal_CT |
+The Gradio deployment preserves the original TensorFlow DenseNet121 feature extractor and trained scikit-learn models. It runs inference on CPU; Hugging Face ZeroGPU is PyTorch-oriented and will not accelerate this TensorFlow CPU model.
 
-## Models Compared
-- SVM (Linear kernel)
-- Random Forest (100 estimators)
-- Logistic Regression (max_iter=1000)
+See [DEPLOYMENT.md](DEPLOYMENT.md) for the complete deployment steps. The uploaded source archive did **not** include the trained classifiers. Before the Space can start, train or provide:
 
-Evaluated on: Accuracy, Precision, Recall, F1 Score
+```text
+backend/artifacts/svm.joblib
+backend/artifacts/rf.joblib
+backend/artifacts/lr.joblib
+backend/artifacts/metrics.json
+```
 
-## Dataset
-Download from [Google Drive](https://drive.google.com/drive/folders/1ibOUHamULECObSAR1QDvZLw7C_PWZdg8?usp=sharing) (~3GB). Not stored in this repo.
+The approximately 3 GB dataset is not included. It is only needed to train the models; do not upload it to Vercel or Hugging Face.
 
-## Notebook (research)
-Open `covid_19_&_pneumonia_classification.ipynb` in Google Colab, mount Drive, place the dataset at `/content/drive/MyDrive/DS1/Mendaly/`, run all cells.
+## Train the models
 
-## Website
-    frontend/   static website (host on Vercel, Root Directory = frontend)
-    backend/    Flask API + training script (host on a container service, e.g. Hugging Face Spaces)
+Download the dataset from [Google Drive](https://drive.google.com/drive/folders/1ibOUHamULECObSAR1QDvZLw7C_PWZdg8?usp=sharing). Put its class folders under `backend/Mendaly/`:
 
-### Run locally
-    cd backend
-    pip install -r requirements.txt
-    python train.py        # once; looks for ./Mendaly or ../Mendaly, saves models to backend/artifacts
-    python server.py       # open http://localhost:5173
+```text
+backend/Mendaly/COVID2_CT/
+backend/Mendaly/pneumonia_CT/
+backend/Mendaly/Normal_CT/
+```
 
-### Deploy
-1. Backend: push `backend/` (with `artifacts/`) to a Docker Hugging Face Space (`git lfs track "*.joblib"`). Check `<space-url>/health`.
-2. Frontend: set the Space URL in `frontend/config.js` (`window.CT_API = "https://..."`).
-3. Vercel: import this repo, set **Root Directory = frontend**, Framework Preset = Other, Deploy.
+Then, using Python 3.11:
 
-## Disclaimer
-Research and educational use only. Not a medical diagnostic tool.
+```bash
+cd backend
+python -m venv .venv
+# macOS/Linux:
+source .venv/bin/activate
+# Windows PowerShell:
+# .venv\Scripts\Activate.ps1
+python -m pip install -r requirements.txt
+python train.py
+```
+
+Training extracts DenseNet121 features and may take a while on CPU. It saves the three classifiers and metrics under `backend/artifacts/`.
+
+## Run locally
+
+After training, from `backend/` run:
+
+```bash
+python server.py
+```
+
+Open `http://localhost:5173`. For local mode, leave both `window.CT_API` and `window.CT_SPACE` empty in `frontend/config.js`.
+
+## Important
+
+This is a research/educational demo, **not a medical diagnostic tool**. The public Space API has no authentication. Do not upload identifiable or sensitive patient scans.

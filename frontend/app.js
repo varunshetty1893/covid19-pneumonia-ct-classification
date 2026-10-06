@@ -8,6 +8,9 @@ const $=id=>document.getElementById(id),pct=x=>(x*100).toFixed(2)+"%";
 const esc=s=>String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
 const col=l=>`var(${(CLASSES.find(c=>c.n===l)||CLASSES[0]).c})`;
 const API=(window.CT_API||"").replace(/\/$/,"")||(location.protocol==="file:"?"http://localhost:5173":"");
+const SPACE=(window.CT_SPACE||"").trim();
+const GRADIO_CLIENT_URL="https://cdn.jsdelivr.net/npm/@gradio/client@2.7.1/dist/index.min.js";
+let gradioClientPromise=null,gradioHandleFile=null;
 
 function stats(cm){
   const tot=cm.flat().reduce((a,b)=>a+b,0),per=cm.map((r,i)=>{const tp=r[i],sup=r.reduce((a,b)=>a+b,0),pp=cm.reduce((a,x)=>a+x[i],0),p=pp?tp/pp:0,rc=sup?tp/sup:0;return{p,r:rc,f:p+rc?2*p*rc/(p+rc):0,sup}});
@@ -35,8 +38,21 @@ function show(s){states.forEach(x=>$("s-"+x).hidden=x!==s)}
 function err(m){const e=$("err");e.textContent=m||"";e.hidden=!m}
 async function checkServer(){
   const s=$("status");
-  try{const r=await fetch(API+"/health");if(!r.ok)throw 0;s.textContent="Classifier online";s.className="pill on"}
+  try{
+    if(SPACE){s.textContent="Connecting to classifier…";s.className="pill";await getGradioClient()}
+    else{const r=await fetch(API+"/health");if(!r.ok)throw new Error("Local classifier unavailable")}
+    s.textContent="Classifier online";s.className="pill on"
+  }
   catch{s.textContent="Classifier offline";s.className="pill off";s.title="Start it with: python server.py"}
+}
+async function getGradioClient(){
+  if(!SPACE)throw new Error("Set window.CT_SPACE in frontend/config.js to your public Hugging Face Space (username/space-name).");
+  if(!gradioClientPromise)gradioClientPromise=(async()=>{
+    const {Client,handle_file}=await import(GRADIO_CLIENT_URL);
+    gradioHandleFile=handle_file;
+    return Client.connect(SPACE);
+  })();
+  try{return await gradioClientPromise}catch(e){gradioClientPromise=null;throw e}
 }
 function pick(f){
   err();
@@ -56,17 +72,27 @@ function pick(f){
 function reset(){file=null;if(url)URL.revokeObjectURL(url);url=null;$("file").value="";err();show("empty")}
 async function analyze(){
   if(!file)return;err();show("loading");
-  const fd=new FormData();fd.append("image",file),ctl=new AbortController(),t=setTimeout(()=>ctl.abort(),180000);
+  const fd=new FormData();fd.append("image",file);
+  let t;
   try{
-    const r=await fetch(API+"/predict",{method:"POST",body:fd,signal:ctl.signal});
-    let j=null;try{j=await r.json()}catch{}
-    if(r.status>=400&&r.status<500)throw new Error(j&&j.error?j.error+". Please try a different image.":"The image was not accepted. Please try a different one.");
-    if(!r.ok||!j||!Array.isArray(j.results)||!j.results.length)throw new Error("The analysis service ran into a problem. Please try again in a moment.");
+    let j;
+    if(SPACE){
+      const timeout=new Promise((_,reject)=>{t=setTimeout(()=>reject(new Error("The classifier took too long to respond. The Space may be waking up; please retry.")),180000)});
+      const result=await Promise.race([getGradioClient().then(client=>client.predict("/predict",[gradioHandleFile(file)])),timeout]);
+      j=result&&result.data&&result.data[0];
+    }else{
+      const r=await fetch(API+"/predict",{method:"POST",body:fd});
+      j=null;try{j=await r.json()}catch{}
+      if(r.status>=400&&r.status<500)throw new Error(j&&j.error?j.error+". Please try a different image.":"The image was not accepted. Please try a different one.");
+      if(!r.ok)throw new Error("The analysis service ran into a problem. Please try again in a moment.");
+    }
+    if(j&&j.error)throw new Error(j.error);
+    if(!j||!Array.isArray(j.results)||!j.results.length)throw new Error("The analysis service returned an unexpected response. Please try again.");
     render(j.results);show("result");
   }catch(e){
     show("selected");
-    err(e instanceof TypeError||e.name==="AbortError"?"Could not reach the classification service. Please check your connection and try again. If you are running this locally, start the server with: python server.py":e.message);
-  }finally{clearTimeout(t)}
+    err(e instanceof TypeError?"Could not reach the classification service. Check the Space name and connection, then try again.":e.message);
+  }finally{if(t)clearTimeout(t)}
 }
 function render(res){
   const ok=res.filter(x=>x&&x.probs),avg={};

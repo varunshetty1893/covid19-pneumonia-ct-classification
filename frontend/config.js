@@ -1,4 +1,6 @@
-// Address of the classifier backend.
-// Local use (python server.py serves this site too): leave as "".
-// On Vercel: put your deployed backend URL, e.g. "https://your-name-lunglens.hf.space"
+// Local use (python backend/server.py): leave both values blank.
 window.CT_API = "";
+
+// For the Vercel + Gradio Space deployment, set this to "username/space-name".
+// The Space must be public so the browser client can connect without a token.
+window.CT_SPACE = "";
