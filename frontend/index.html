@@ -1,0 +1,146 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>LungLens · CT Scan Classification</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Public+Sans:wght@400;500;600&family=Source+Serif+4:opsz,wght@8..60,600;8..60,700&display=swap">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<header class="nav"><div class="wrap navin">
+  <a class="brand" href="#/">LungLens</a>
+  <button id="menuBtn" class="burger" aria-label="Menu" aria-expanded="false">Menu</button>
+  <nav id="menu">
+    <a data-nav="home" href="#/">Home</a><a data-nav="classify" href="#/classify">Classify</a><a data-nav="insights" href="#/insights">Model Insights</a><a data-nav="about" href="#/about">About</a>
+  </nav>
+</div></header>
+
+<main>
+<!-- HOME -->
+<div id="p-home" class="page">
+  <section class="hero"><div class="wrap herogrid">
+    <div>
+      <h1>AI-Powered CT Scan Classification</h1>
+      <p class="lede">Analyze chest CT scan images using machine learning models trained to classify COVID-19, Pneumonia, and Normal cases.</p>
+      <div class="row"><a class="btn" href="#/classify">Analyze CT Scan</a><a class="btn ghost" href="#/insights">Explore Model</a></div>
+    </div>
+    <figure class="scan" aria-hidden="true">
+      <svg viewBox="0 0 240 240"><rect width="240" height="240" rx="14" fill="#0c1418"/>
+        <ellipse cx="120" cy="124" rx="92" ry="78" fill="#6f7d84"/><ellipse cx="120" cy="124" rx="86" ry="72" fill="#3b484f"/>
+        <ellipse cx="82" cy="120" rx="34" ry="48" fill="#0c1418"/><ellipse cx="158" cy="120" rx="34" ry="48" fill="#0c1418"/>
+        <ellipse cx="120" cy="116" rx="13" ry="22" fill="#9aa8ae"/><circle cx="120" cy="178" r="9" fill="#c9d3d7"/>
+        <path d="M14 34V14h20M206 14h20v20M226 206v20h-20M34 226H14v-20" stroke="#4fb3c4" stroke-width="2" fill="none"/></svg>
+      <figcaption>Illustration of a chest CT slice</figcaption>
+    </figure>
+  </div></section>
+
+  <section class="wrap sec"><h2>How It Works</h2>
+    <div class="steps">
+      <div class="card"><span class="num">01</span><h3>Upload</h3><p>Upload a chest CT scan image.</p></div>
+      <div class="card"><span class="num">02</span><h3>Analyze</h3><p>The image is processed through the existing machine-learning pipeline.</p></div>
+      <div class="card"><span class="num">03</span><h3>Classify</h3><p>View the model's classification result and confidence.</p></div>
+    </div></section>
+
+  <section class="wrap sec"><h2>Supported Classifications</h2>
+    <div class="steps">
+      <div class="card cls" style="--c:var(--covid)"><h3>COVID-19</h3><p>CT scans from the COVID-19 folder of the project dataset.</p></div>
+      <div class="card cls" style="--c:var(--pneu)"><h3>Pneumonia</h3><p>CT scans from the pneumonia folder of the project dataset.</p></div>
+      <div class="card cls" style="--c:var(--norm)"><h3>Normal</h3><p>CT scans from the normal folder of the project dataset.</p></div>
+    </div></section>
+
+  <section class="wrap sec narrow"><h2>About the Project</h2>
+    <p>A machine-learning research and educational project for CT scan image classification. Features are extracted with a pretrained DenseNet121 network and passed to three classifiers: SVM, Random Forest and Logistic Regression. <a href="#/about">Read more</a></p>
+    <div class="disc"><b>Research &amp; Educational Use Only</b><p>This application is intended for research and educational purposes only. It is not a medical diagnostic tool and should not be used as a substitute for professional medical advice.</p></div>
+  </section>
+</div>
+
+<!-- CLASSIFY -->
+<div id="p-classify" class="page" hidden>
+  <div class="wrap sec">
+    <div class="between"><div><h1 class="h1s">CT Scan Classifier</h1><p class="muted">Upload a chest CT image to classify it.</p></div><span id="status" class="pill">Checking classifier…</span></div>
+    <div id="err" class="alert" role="alert" hidden></div>
+
+    <div id="s-empty">
+      <label class="drop" id="drop" tabindex="0">
+        <input id="file" type="file" accept="image/png,image/jpeg" hidden>
+        <svg width="44" height="44" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M12 16V4m0 0L7 9m5-5 5 5M4 16v3a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1v-3"/></svg>
+        <h2>Upload CT Scan</h2><p class="big">Drag &amp; drop your image here</p><p class="muted">OR</p>
+        <span class="btn">Browse Files</span><p class="muted small">JPG • JPEG • PNG · up to 10 MB</p>
+      </label>
+    </div>
+
+    <div id="s-selected" class="two" hidden>
+      <div class="card"><img id="prev" alt="Selected CT scan" class="shot"></div>
+      <div class="card"><h2>Ready to analyze</h2>
+        <dl class="meta"><dt>Filename</dt><dd id="m-name"></dd><dt>File type</dt><dd id="m-type"></dd><dt>File size</dt><dd id="m-size"></dd></dl>
+        <div class="row"><button class="btn" id="analyze">Analyze CT Scan</button><button class="btn ghost" id="change">Change Image</button></div></div>
+    </div>
+
+    <div id="s-loading" class="card center" hidden aria-live="polite"><div class="spin"></div><h2>Analyzing CT scan...</h2><p class="muted">The first image can take a few seconds while the model loads.</p></div>
+
+    <div id="s-result" hidden>
+      <div class="two">
+        <div class="card"><h3>Uploaded CT Scan</h3><img id="prev2" alt="Analyzed CT scan" class="shot"></div>
+        <div class="card"><h3>Classification Result</h3><div id="res"></div></div>
+      </div>
+      <div class="card sp"><h3>Model Comparison</h3><div class="scroll"><table id="cmp"></table></div><p class="muted small" id="cmpnote"></p></div>
+      <div class="row sp"><button class="btn" id="again">Analyze Another Scan</button><a class="btn ghost" href="#/insights">Model Insights</a></div>
+      <p class="muted small">Research &amp; educational use only. Not a medical diagnosis.</p>
+    </div>
+  </div>
+</div>
+
+<!-- INSIGHTS -->
+<div id="p-insights" class="page" hidden><div class="wrap sec">
+  <h1 class="h1s">Model Insights</h1><p class="muted narrow">Evaluation of the three classifiers on the held-out test set from the project notebook.</p>
+
+  <h2 class="sp">Model Overview</h2>
+  <div class="steps">
+    <div class="card"><h3>SVM</h3><p>Support Vector Machine with a linear kernel.</p></div>
+    <div class="card"><h3>Random Forest</h3><p>Ensemble of 100 decision trees.</p></div>
+    <div class="card"><h3>Logistic Regression</h3><p>Linear classifier with up to 1,000 iterations.</p></div>
+  </div>
+
+  <h2 class="sp">Model Performance</h2><p class="muted">Weighted metrics on the test set.</p>
+  <div class="steps" id="perf"></div>
+
+  <h2 class="sp">Comparing the Three Models</h2>
+  <p class="muted narrow">Accuracy is close to perfect for all three, so the clearest difference is the number of test scans each one misclassified.</p>
+  <div class="card"><div id="bars"></div></div>
+
+  <h2 class="sp">Confusion Matrix</h2>
+  <div class="tabs" id="tabs" role="tablist"></div>
+  <div class="card cmcard"><div id="cm"></div><p class="muted small" id="cmnote" aria-live="polite"></p></div>
+
+  <h2 class="sp">Dataset</h2>
+  <div class="steps" id="ds"></div>
+  <p class="muted small">Images were read from three class folders (COVID2_CT, pneumonia_CT, Normal_CT). 70% / 30% train–test split, stratified by class, random_state 42.</p>
+
+  <h2 class="sp">Image Preprocessing</h2>
+  <p class="narrow">Each image is read with OpenCV, converted from BGR to RGB, resized to 224×224 pixels, then normalized with DenseNet's <code>preprocess_input</code>.</p>
+  <h2 class="sp">Feature Extraction</h2>
+  <p class="narrow">DenseNet121 with ImageNet weights, without its classification layer and with all layers frozen, acts as a fixed feature extractor. Its 7×7×1024 output is flattened into a 50,176-value vector for each image.</p>
+
+  <h2 class="sp">Methodology</h2>
+  <ol class="flow"><li>CT Scan</li><li>Preprocessing</li><li>Feature Extraction</li><li>ML Model</li><li>Classification</li><li>Result</li></ol>
+
+  <div class="disc sp"><b>Read these scores with caution</b><p>Scores are near perfect, which can indicate leakage: the split is random by image, so slices from one patient may appear in both train and test. There is one split with no cross-validation, and one dataset. The models always choose one of three classes, even for an image that is not a chest CT.</p></div>
+</div></div>
+
+<!-- ABOUT -->
+<div id="p-about" class="page" hidden><div class="wrap sec narrow">
+  <h1 class="h1s">About</h1>
+  <h2>Project Objective</h2><p>This project explores how well features from a pretrained image network, combined with classical machine-learning classifiers, can separate chest CT scans into COVID-19, Pneumonia and Normal classes.</p>
+  <h2 class="sp">Machine Learning Approach</h2><p>CT images are resized and normalized, passed once through a frozen DenseNet121 to produce feature vectors, and then classified by SVM, Random Forest and Logistic Regression. The three results are compared.</p>
+  <h2 class="sp">Models Used</h2><ul><li>SVM</li><li>Random Forest</li><li>Logistic Regression</li></ul>
+  <h2 class="sp">Technology / Tools</h2><ul><li>Python, Google Colab</li><li>TensorFlow / Keras (DenseNet121)</li><li>scikit-learn</li><li>OpenCV, NumPy</li><li>Matplotlib, Seaborn (notebook charts)</li><li>Flask (serves the website and prediction endpoint)</li><li>HTML, CSS, JavaScript (this website)</li></ul>
+  <h2 class="sp">Research Disclaimer</h2>
+  <div class="disc"><b>Research &amp; Educational Use Only</b><p>This project is intended for educational and research purposes only. It does not provide medical diagnosis or medical advice.</p></div>
+</div></div>
+</main>
+<footer class="foot"><div class="wrap">LungLens · Research &amp; educational use only. Not a medical diagnostic tool.</div></footer>
+<script src="config.js"></script>
+<script src="app.js"></script>
+</body>
+</html>

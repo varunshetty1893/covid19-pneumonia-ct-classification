@@ -1,0 +1,6 @@
+# dataset and trained models stay on your PC (too large for GitHub)
+Mendaly/
+backend/Mendaly/
+backend/artifacts/*.joblib
+backend/artifacts/features.npz
+__pycache__/
